@@ -1,0 +1,23 @@
+{
+    "name": "Volume Changer",
+    "manifest_version": 3,
+    "description": "Extension which changes the volume of the current tab (made mainly for MS Teams).",
+    "version": "1.0.0",
+    "action": {
+        "default_popup": "assets/options.html"
+    },
+    "content_scripts": [
+        {
+          "matches": ["<all_urls>"],
+          "js": ["assets/content_script.js"]
+        }
+      ],
+    "permissions": [
+        "activeTab",
+        "scripting"
+    ],
+    "host_permissions": [
+        "<all_urls>"
+    ],
+    "minimum_chrome_version": "92"
+}
