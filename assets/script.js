@@ -1,13 +1,23 @@
-const range = document.getElementById("range");
-const label = document.getElementById("label");
+const range = document.querySelector("#range");
+const label = document.querySelector("#label");
+const body = document.querySelector("body");
 
-const getCurrentTab = async () => {
-  const tabs = await chrome.tabs.query({
+chrome.tabs.query(
+  {
     active: true,
     lastFocusedWindow: true,
-  });
-  return tabs[0];
-};
+  },
+  (tabs) => {
+    const tab = tabs[0];
+    if (!tab?.id) return;
+    if (!tab?.url?.startsWith("http"))
+      return (body.innerHTML = "Not Supported!");
+
+    updateVolumeText(tab);
+    range.addEventListener("input", () => listenerFunction(tab));
+    range.addEventListener("change", () => listenerFunction(tab));
+  }
+);
 
 const executeScript = async (tab, func, args) => {
   await chrome.scripting.executeScript({
@@ -19,20 +29,14 @@ const executeScript = async (tab, func, args) => {
   });
 };
 
-const updateVolumeText = async () => {
-  const tab = await getCurrentTab();
-  chrome.tabs.sendMessage(
-    tab.id,
-    "getVolume",
-    (response) => {
-      label.innerText = `Volume  (${response * 100}%)`;
-      range.value = response * 100;
-    }
-  );
+const updateVolumeText = async (tab) => {
+  chrome.tabs.sendMessage(tab.id, "getVolume", (response) => {
+    label.innerText = `Volume  (${response * 100}%)`;
+    range.value = response * 100;
+  });
 };
 
-const listenerFunction = async () => {
-  const tab = await getCurrentTab();
+const listenerFunction = async (tab) => {
   await executeScript(
     tab,
     (value) => {
@@ -44,7 +48,3 @@ const listenerFunction = async () => {
   );
   label.innerText = `Volume  (${range.value}%)`;
 };
-
-updateVolumeText();
-range.oninput = listenerFunction;
-range.onchange = listenerFunction;
